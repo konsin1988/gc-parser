@@ -1,0 +1,2 @@
+CREATE SCHEMA IF NOT EXISTS parsing_data;
+CREATE SCHEMA IF NOT EXISTS service_info;
