@@ -1,0 +1,45 @@
+services:
+  # ---------------------------
+  # Dev 
+  # --------------------------
+  api:
+    build:
+      context: .
+      dockerfile: ./docker/api/Dockerfile.dev
+    image: konsin1988/${PROJECT_NAME}-dev:${PROJECT_VERSION}
+    container_name: ${PROJECT_NAME}-dev 
+    env_file: .env
+    ports:
+      - "${CONTAINER_PORT}:8013"
+    volumes:
+      - ./api:/app
+      - /app/tmp
+    command: air /app
+    profiles:
+      - dev
+    restart: unless-stopped
+    networks:
+      - gc-network
+
+  # -------------------------
+  # Prod
+  # --------------------------
+  api-prod:
+    build:
+      context: .
+      dockerfile: ./docker/api/Dockerfile
+    image: konsin1988/${PROJECT_NAME}:${PROJECT_VERSION}
+    container_name: ${PROJECT_NAME} 
+    env_file: .env
+    ports:
+      - "${CONTAINER_PORT}:8013"
+    profiles:
+      - prod
+    restart: unless-stopped
+    networks:
+      - gc-network
+
+networks:
+  gc-network:
+    name: gc-network 
+    external: True
