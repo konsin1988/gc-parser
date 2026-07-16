@@ -9,9 +9,7 @@ import (
     _ "github.com/lib/pq"
 )
 
-var DB *sql.DB
-
-func ConnectDB() {
+func ConnectDB() (*sql.DB, error) {
 	var err error
 
   dbHost := os.Getenv("DB_HOST")
@@ -25,13 +23,14 @@ func ConnectDB() {
       dbHost, dbPort, dbUser, dbPass, dbName,
   )
 
-	DB, err = sql.Open("postgres", connStr)
+	db, err := sql.Open("postgres", connStr)
   if err != nil {
 		log.Fatalf("Connection error: %v", err)
   }
 
-  if err = DB.Ping(); err != nil {
+  if err = db.Ping(); err != nil {
 		log.Fatalf("Database not allowed: %v", err)
   }
   log.Println("Successfully connected to database")
+	return db, nil
 }
