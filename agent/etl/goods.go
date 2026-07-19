@@ -5,22 +5,22 @@ import (
 
 	"konsin1988/gc-agent/repository"
 	"konsin1988/gc-agent/marketplace/ozon"
+	"konsin1988/gc-agent/dadata"
 	"konsin1988/gc-agent/parser"
 	_ "konsin1988/gc-agent/model"
 )
 
 type SearchGoodsJob struct {
-	BaseJob 
+	Services	
 
   SearchURL 	string
-	CategoryId  int
 	QueryId			int
 	maxPages 		int
 }
 
 
 func (j *SearchGoodsJob) Fetch(ctx context.Context) (any, error) {
-    return j.Client.GoodsBySearch(ctx, j.SearchURL)
+    return j.Ozon.GoodsBySearch(ctx, j.SearchURL)
 }
 
 func (j *SearchGoodsJob) Parse(data any) (any, error) {
@@ -30,26 +30,24 @@ func (j *SearchGoodsJob) Parse(data any) (any, error) {
 }
 
 func (j *SearchGoodsJob) Save(ctx context.Context, data any) error {
-    goods := data.(*parser.GoodsPage)
-
-    return j.Repo.SaveGoods(ctx, j.CategoryId, j.QueryId, goods.Goods)
+		return nil
 }
 
 func NewSearchGoodsJob(
-	client *ozon.Client,
+	ozon *ozon.Client,
+	dadata  *dadata.Client,
 	repo *repository.Repository,
 	searchText string,
-	categoryID int,
 	queryID int,
 	maxPages int,
 ) *SearchGoodsJob {
 	return &SearchGoodsJob{
-		BaseJob: BaseJob{
-			Client: client,
+		Services: Services{
+			Ozon: ozon,
+			Dadata: dadata,
 			Repo:   repo,
 		},
-		SearchURL: client.BuildSearchPageURL(searchText),
-		CategoryId: categoryID,
+		SearchURL: ozon.BuildSearchPageURL(searchText),
 		QueryId: queryID,
 		maxPages: maxPages,
 	}
@@ -68,10 +66,6 @@ func (j *SearchGoodsJob) Run(ctx context.Context) error {
 
 		parsed, err := parser.ParseGoods(page)
 		if err != nil {
-			return err
-		}
-
-		if err := j.Repo.SaveGoods(ctx, j.CategoryId, j.QueryId, parsed.Goods); err != nil {
 			return err
 		}
 

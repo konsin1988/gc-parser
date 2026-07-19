@@ -52,7 +52,7 @@ func ParseGoods(page *ozon.PageResponse) (*GoodsPage, error) {
 
 	for _, item := range widget.Items {
 		items = append(items, model.Good{
-			ID:   item.ID,
+			Sku:   item.ID,
 			Link: item.Action.Link,
 		})
 	}

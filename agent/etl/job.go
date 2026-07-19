@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"konsin1988/gc-agent/marketplace/ozon"
+	"konsin1988/gc-agent/dadata"
 	"konsin1988/gc-agent/repository"
 )
 
@@ -13,7 +14,8 @@ type Job interface {
     Save(ctx context.Context, data any) error
 }
 
-type BaseJob struct {
-    Client *ozon.Client
-    Repo   *repository.Repository
+type Services struct {
+    Ozon 			*ozon.Client
+		Dadata		*dadata.Client
+    Repo   		*repository.Repository
 }

@@ -1,6 +1,6 @@
 package model
 
 type Good struct {
-	ID 				string	
+	Sku 			string	
 	Link 			string	
 }

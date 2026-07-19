@@ -16,3 +16,5 @@ func FindWidgetKey(page *ozon.PageResponse, prefix string) (string, error) {
 
 	return "", fmt.Errorf("widget with prefix %q not found", prefix)
 }
+
+
