@@ -3,6 +3,7 @@
 /**/Thumbs.db
 /postgres
 /parsing
+/info
 
 /**/*.swp
 /**/*.swo
