@@ -96,11 +96,12 @@ CREATE TABLE parsing_data.brand_seller (
 -- =================================================
 CREATE TABLE parsing_data.good_item (
     sku VARCHAR(50) PRIMARY KEY,
+    slug VARCHAR(100) NOT NULL,
     title VARCHAR(255) NOT NULL,
     price INTEGER NULL,
     card_price INTEGER NULL,
     original_price INTEGER NULL,
-    availability VARCHAR(100) NULL,
+    availability BOOLEAN NULL,
     seller_id VARCHAR(20) NOT NULL,
     brand_id INTEGER NULL,
     review_link VARCHAR(255) NOT NULL,
@@ -186,6 +187,7 @@ CREATE TABLE parsing_data.image (
     id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     sku VARCHAR(50) NOT NULL,
     img_url VARCHAR(255) NOT NULL,
+    is_cover BOOLEAN NOT NULL,
 
     CONSTRAINT uq_image_url
         UNIQUE (img_url),

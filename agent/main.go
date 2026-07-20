@@ -6,7 +6,7 @@ import (
 	"context"
 
   config "konsin1988/gc-agent/config"
-	_ "konsin1988/gc-agent/dadata"
+	"konsin1988/gc-agent/dadata"
 	"konsin1988/gc-agent/repository"
 	"konsin1988/gc-agent/marketplace/ozon"
 	"konsin1988/gc-agent/etl"
@@ -25,21 +25,32 @@ func main() {
 	defer db.Close()
 	ctx := context.Background()
 
-//	dadataClient := dadata.New(config.App)
-
+	dadataClient := dadata.New(config.App)
 	repo := repository.New(db)
-
-	
-	//queryID, err := repo.InsertQuery(
-	//	ctx,
-	//	config.App.Ozon.SearchQuery,
-	//)
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	
 	ozonClient, err := ozon.New(config.App)
 	if err != nil {
+		log.Fatal(err)
+	}
+
+	
+	queryID, err := repo.InsertQuery(
+		ctx,
+		config.App.Ozon.SearchQuery,
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+	
+	// goodItemJob
+	goodItemJob := etl.NewGoodItemJob(
+		ozonClient,
+		dadataClient,
+		repo,
+		"/product/klaviatura-besprovodnaya-dlya-kompyutera-logitech-k580-rossiyskaya-raskladka-chernyy-3400212321/?at=mqtkxRPBKhRwVDA9hNGjxXkTqRk5vJFknQ456hgn512Q",
+		queryID,
+	)
+
+	if err := goodItemJob.Run(ctx); err != nil {
 		log.Fatal(err)
 	}
 
@@ -58,37 +69,27 @@ func main() {
 	//}
 	
 	// sellerJob
-	sellerJob := etl.NewSellerJob(
-		ozonClient,
-		repo,
-		"43306",
-	)
+	//sellerJob := etl.NewSellerJob(
+	//	ozonClient,
+	//	repo,
+	//	"43306",
+	//)
 
-	if err := sellerJob.Run(ctx); err != nil {
-		log.Fatal(err)
-	}
+	//if err := sellerJob.Run(ctx); err != nil {
+	//	log.Fatal(err)
+	//}
 
 
 	// reviewJob 
-	reviewJob := etl.NewReviewJob(
-		ozonClient,
-		repo,
-		"/product/klaviatura-provodnaya-logitech-k280e-black-usb-103-klavishi-vodostoykaya-920-005215-260147596/reviews/",
-		5,
-	)
+	//reviewJob := etl.NewReviewJob(
+	//	ozonClient,
+	//	repo,
+	//	"/product/klaviatura-provodnaya-logitech-k280e-black-usb-103-klavishi-vodostoykaya-920-005215-260147596/reviews/",
+	//	5,
+	//)
 
-	if err := reviewJob.Run(ctx); err != nil {
-		log.Fatal(err)
-	}
-
-
-	//job := &etl.GetSellerJob{
-	//    Client: ozonClient,
-	//    Repo: repo,
-	//    SellerID: 12345,
+	//if err := reviewJob.Run(ctx); err != nil {
+	//	log.Fatal(err)
 	//}
-	//
-	//err := etl.Run(ctx, job)
-
 }
 

@@ -50,7 +50,6 @@ func Load() {
 			Cookie:     			os.Getenv("OZON_COOKIE"),
 			SearchURL: 				os.Getenv("OZON_SEARCH_URL"),
 			SearchQuery: 			os.Getenv("OZON_SEARCH_QUERY"),
-			SearchCategory:		os.Getenv("OZON_SEARCH_CATEGORY"),
 			SingleItemURL:		os.Getenv("OZON_SINGLE_ITEM_URL"),
 		},
 		Dadata: DadataConfig{

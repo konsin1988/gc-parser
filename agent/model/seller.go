@@ -11,7 +11,8 @@ type Seller struct {
 
 
 type ParsedSeller struct {
-    Name 			string
-    OGRNIP 		string
-    Slug			string
+	ID				string
+  Name 			string
+  OGRNIP 		string
+  Slug			string
 }

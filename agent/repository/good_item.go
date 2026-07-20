@@ -8,13 +8,13 @@ import (
 
 func (r *Repository) InsertGoodItem (
 	ctx context.Context,
-	brandId  int,
-	goodItem model.GoodItem,
+	goodItem *model.GoodItem,
 ) (error) {
 
 	_, err := r.db.ExecContext(ctx, `
 		INSERT INTO parsing_data.good_item (
 																		sku, 
+																		slug,
 																		title, 
 																		price, 
 																		card_price, 
@@ -24,9 +24,10 @@ func (r *Repository) InsertGoodItem (
 																		brand_id,
 																		review_link
 																	)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 		ON CONFLICT (sku)
 		DO UPDATE SET
+			slug = EXCLUDED.slug,
 			title = EXCLUDED.title,
 			price = EXCLUDED.price,
 			card_price = EXCLUDED.card_price,
@@ -35,13 +36,14 @@ func (r *Repository) InsertGoodItem (
 			seller_id = EXCLUDED.seller_id,
 			brand_id = EXCLUDED.brand_id
 	`, goodItem.Sku, 
+		goodItem.Slug,
 		goodItem.Title,
-		goodItem.Price,
-		goodItem.CardPrice,
-		goodItem.OriginalPrice,
+		*goodItem.Price,
+		*goodItem.CardPrice,
+		*goodItem.OriginalPrice,
 		goodItem.Availability,
-		goodItem.SellerId,
-		brandId,
+		*goodItem.SellerId,
+		*goodItem.BrandId,
 		goodItem.ReviewLink,
 	)
 
