@@ -37,10 +37,11 @@ func (r *Repository) insertCategoryRelation(
 ) error {
 
 	_, err := r.db.ExecContext(ctx, `
-		INSERT INTO parsing_data.marketplace_category_relation
+		INSERT INTO parsing_data.category_relation
 		(parent_id, child_id)
 		VALUES ($1,$2)
-		ON CONFLICT DO NOTHING;
+		ON CONFLICT (parent_id, child_id) 
+		DO NOTHING;
 	`, parentID, childID)
 
 	return err 

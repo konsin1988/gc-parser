@@ -7,6 +7,7 @@ type Review struct {
 	CreatedAt				time.Time	
 	Sku							string
 	AuthorGuid			string
+	Score						int
 	Comment					string
 	Positive				string
 	Negative				string

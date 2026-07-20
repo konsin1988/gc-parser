@@ -20,7 +20,7 @@ func (r *Repository) InsertGoodItem (
 																		card_price, 
 																		original_price, 
 																		availability,
-																		seller_id
+																		seller_id,
 																		brand_id,
 																		review_link
 																	)
@@ -34,7 +34,7 @@ func (r *Repository) InsertGoodItem (
 			original_price = EXCLUDED.original_price,
 			availability = EXCLUDED.availability,
 			seller_id = EXCLUDED.seller_id,
-			brand_id = EXCLUDED.brand_id
+			brand_id = EXCLUDED.brand_id;
 	`, goodItem.Sku, 
 		goodItem.Slug,
 		goodItem.Title,

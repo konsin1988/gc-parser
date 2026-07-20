@@ -13,12 +13,6 @@ func (r *Repository) InsertReviewImages (
 	imgs []model.ReviewImage,
 ) (error) {
 
-	//tx, err := r.db.BeginTx(ctx, nil)
-  //if err != nil {
-  //    return err
-  //}
-  //defer tx.Rollback()
-
 	stmt, err := tx.PrepareContext(ctx, `
 		INSERT INTO parsing_data.review_image (review_uuid, url)
 		VALUES ($1, $2)

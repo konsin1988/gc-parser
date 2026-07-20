@@ -164,18 +164,13 @@ CREATE TABLE parsing_data.review (
     created_at TIMESTAMPTZ NOT NULL,
     sku VARCHAR(50) NOT NULL,
     author_guid VARCHAR(50) NOT NULL,
+    score INTEGER NOT NULL,
     "comment" TEXT NOT NULL,
     positive TEXT NOT NULL,
     negative TEXT NOT NULL,
 
     CONSTRAINT uq_review_uuid
-        UNIQUE (uuid),
-
-    CONSTRAINT fk_review_good_item
-        FOREIGN KEY (sku)
-        REFERENCES parsing_data.good_item(sku)
-        ON DELETE CASCADE 
-        ON UPDATE CASCADE
+        UNIQUE (uuid)
 );
 
 

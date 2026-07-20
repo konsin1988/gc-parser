@@ -10,6 +10,7 @@ import (
 	"konsin1988/gc-agent/repository"
 	"konsin1988/gc-agent/marketplace/ozon"
 	"konsin1988/gc-agent/etl"
+	"konsin1988/gc-agent/service"
 	_ "github.com/bogdanfinn/fhttp"
   _ "github.com/bogdanfinn/tls-client"
   _ "github.com/bogdanfinn/tls-client/profiles"
@@ -32,6 +33,18 @@ func main() {
 		log.Fatal(err)
 	}
 
+	services := &etl.Services{
+		Repo:   repo,
+		Ozon:   ozonClient,
+		Dadata: dadataClient,
+	}
+
+	goodItemService := service.NewGoodItemService(
+		services.Repo,
+		services.Ozon,
+		services.Dadata,
+	)
+
 	
 	queryID, err := repo.InsertQuery(
 		ctx,
@@ -43,9 +56,8 @@ func main() {
 	
 	// goodItemJob
 	goodItemJob := etl.NewGoodItemJob(
-		ozonClient,
-		dadataClient,
-		repo,
+		services,
+		goodItemService,
 		"/product/klaviatura-besprovodnaya-dlya-kompyutera-logitech-k580-rossiyskaya-raskladka-chernyy-3400212321/?at=mqtkxRPBKhRwVDA9hNGjxXkTqRk5vJFknQ456hgn512Q",
 		queryID,
 	)
@@ -70,8 +82,7 @@ func main() {
 	
 	// sellerJob
 	//sellerJob := etl.NewSellerJob(
-	//	ozonClient,
-	//	repo,
+	//	services,
 	//	"43306",
 	//)
 
@@ -82,8 +93,7 @@ func main() {
 
 	// reviewJob 
 	//reviewJob := etl.NewReviewJob(
-	//	ozonClient,
-	//	repo,
+	//	services,
 	//	"/product/klaviatura-provodnaya-logitech-k280e-black-usb-103-klavishi-vodostoykaya-920-005215-260147596/reviews/",
 	//	5,
 	//)

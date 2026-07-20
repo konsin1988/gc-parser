@@ -18,4 +18,5 @@ type Services struct {
     Ozon 			*ozon.Client
 		Dadata		*dadata.Client
     Repo   		*repository.Repository
+
 }
