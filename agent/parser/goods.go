@@ -21,12 +21,8 @@ type action struct {
 	Link string `json:"link"`
 }
 
-type GoodsPage struct {
-	Goods 			[]model.Good
-	NextPage		string
-}
 
-func ParseGoods(page *ozon.PageResponse) (*GoodsPage, error) {
+func ParseGoods(page *ozon.PageResponse) (*model.GoodsPage, error) {
 	gridKey, err := FindWidgetKey(page, "tileGridDesktop-")
 	if err != nil {
 		return nil, err
@@ -57,7 +53,7 @@ func ParseGoods(page *ozon.PageResponse) (*GoodsPage, error) {
 		})
 	}
 
-	return &GoodsPage{
+	return &model.GoodsPage{
 		Goods:		items,
 		NextPage:	page.NextPage,	
 	}, nil

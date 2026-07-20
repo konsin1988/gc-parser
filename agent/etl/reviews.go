@@ -18,7 +18,7 @@ type ReviewJob struct {
 
 
 func (j *ReviewJob) Fetch(ctx context.Context) (any, error) {
-    return j.Ozon.Review(ctx, j.ReviewURL)
+    return j.Ozon.DataByURL(ctx, j.ReviewURL)
 }
 
 func (j *ReviewJob) Parse(data any) (any, error) {

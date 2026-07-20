@@ -2,6 +2,7 @@ package etl
 
 import (
 	"context"
+	_ "log"
 
 	"konsin1988/gc-agent/repository"
 	"konsin1988/gc-agent/marketplace/ozon"
@@ -20,7 +21,7 @@ type SearchGoodsJob struct {
 
 
 func (j *SearchGoodsJob) Fetch(ctx context.Context) (any, error) {
-    return j.Ozon.GoodsBySearch(ctx, j.SearchURL)
+    return j.Ozon.DataByURL(ctx, j.SearchURL)
 }
 
 func (j *SearchGoodsJob) Parse(data any) (any, error) {
@@ -56,25 +57,27 @@ func NewSearchGoodsJob(
 
 func (j *SearchGoodsJob) Run(ctx context.Context) error {
 	for i := 0; i < j.maxPages; i++ {
-
 		raw, err := j.Fetch(ctx)
 		if err != nil {
 			return err
 		}
-
 		page := raw.(*ozon.PageResponse)
-
 		parsed, err := parser.ParseGoods(page)
 		if err != nil {
 			return err
 		}
 
+		//for _, good := range goodsPage.Goods {
+	  //  go func(g model.GoodLink) {
+	  //      job := &GoodItemJob{...}
+	  //      _ = job.Run(ctx)
+	  //  }(good)
+		//}
+
 		if parsed.NextPage == "" {
 			break
 		}
-
 		j.SearchURL = parsed.NextPage
 	}
-
 	return nil
 }

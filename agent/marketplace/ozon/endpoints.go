@@ -28,7 +28,7 @@ func (c *Client) BuildSearchPageURL(
 }
 
 // GOODS BY SEARCH TEXT
-func (c *Client) GoodsBySearch(ctx context.Context, url string) (*PageResponse, error) {
+func (c *Client) DataByURL(ctx context.Context, url string) (*PageResponse, error) {
     req, err := c.newPageRequest(url)
     if err != nil {
         return nil, err
@@ -51,23 +51,6 @@ func (c *Client) Seller(ctx context.Context, sellerID string) (*PageResponse, er
         sellerID,
     )
 
-    req, err := c.newPageRequest(url)
-    if err != nil {
-        return nil, err
-    }
-
-    req = req.WithContext(ctx)
-
-    body, err := c.do(req)
-    if err != nil {
-        return nil, err
-    }
-
-    return DecodePageResponse(body)
-}
-
-// REVIEW DATA
-func (c *Client) Review(ctx context.Context, url string) (*PageResponse, error) {
     req, err := c.newPageRequest(url)
     if err != nil {
         return nil, err

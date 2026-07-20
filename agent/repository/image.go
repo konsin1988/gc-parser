@@ -18,8 +18,8 @@ func (r *Repository) InsertImage (
   defer tx.Rollback()
 
 	stmt, err := tx.PrepareContext(ctx, `
-		INSERT INTO parsing_data.image (sku, img_url)
-		VALUES ($1, $2)
+		INSERT INTO parsing_data.image (sku, img_url, is_cover)
+		VALUES ($1, $2, $3)
 		ON CONFLICT (sku, img_url)
 		DO UPDATE SET
 			img_url = EXCLUDED.img_url
@@ -35,6 +35,7 @@ func (r *Repository) InsertImage (
         ctx,
 				img.Sku,
 				img.ImgURL,
+				img.IsCover,
     )
   	if err != nil {
   		return err
