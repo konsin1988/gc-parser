@@ -18,10 +18,11 @@ func (r *Repository) InsertReviews(
   defer tx.Rollback()
 
 	stmt, err := tx.PrepareContext(ctx, `
-		INSERT INTO parsing_data.review(uuid, created_at, sku, author_guid, comment, positive, negative)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		INSERT INTO parsing_data.review(uuid, created_at, sku, author_guid, score, comment, positive, negative)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 		ON CONFLICT (uuid)
 		DO UPDATE SET
+			score = EXCLUDED.score,
 			comment = EXCLUDED.comment,
 			positive = EXCLUDED.positive,
 			negative = EXCLUDED.negative
@@ -39,6 +40,7 @@ func (r *Repository) InsertReviews(
 				review.CreatedAt,
 				review.Sku,
 				review.AuthorGuid,
+				review.Score,
 				review.Comment,
 				review.Positive,
 				review.Negative,

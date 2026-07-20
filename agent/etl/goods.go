@@ -2,13 +2,9 @@ package etl
 
 import (
 	"context"
-	_ "log"
 
-	"konsin1988/gc-agent/repository"
 	"konsin1988/gc-agent/marketplace/ozon"
-	"konsin1988/gc-agent/dadata"
 	"konsin1988/gc-agent/parser"
-	_ "konsin1988/gc-agent/model"
 )
 
 type SearchGoodsJob struct {
@@ -35,20 +31,14 @@ func (j *SearchGoodsJob) Save(ctx context.Context, data any) error {
 }
 
 func NewSearchGoodsJob(
-	ozon *ozon.Client,
-	dadata  *dadata.Client,
-	repo *repository.Repository,
+	services *Services,
 	searchText string,
 	queryID int,
 	maxPages int,
 ) *SearchGoodsJob {
 	return &SearchGoodsJob{
-		Services: Services{
-			Ozon: ozon,
-			Dadata: dadata,
-			Repo:   repo,
-		},
-		SearchURL: ozon.BuildSearchPageURL(searchText),
+		Services: *services,
+		SearchURL: services.Ozon.BuildSearchPageURL(searchText),
 		QueryId: queryID,
 		maxPages: maxPages,
 	}

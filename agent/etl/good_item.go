@@ -4,18 +4,18 @@ import (
 	"context"
 	"log"
 
-	"konsin1988/gc-agent/repository"
 	"konsin1988/gc-agent/marketplace/ozon"
-	"konsin1988/gc-agent/dadata"
 	"konsin1988/gc-agent/parser"
 	"konsin1988/gc-agent/model"
+	"konsin1988/gc-agent/service"
 )
 
 type GoodItemJob struct {
 	Services	
 
-	GoodURL			string
-	QueryID			int
+	GoodItemService 	*service.GoodItemService
+	GoodURL						string
+	QueryID						int
 }
 
 
@@ -36,18 +36,14 @@ func (j *GoodItemJob) Save(ctx context.Context, data any) error {
 }
 
 func NewGoodItemJob(
-	ozon *ozon.Client,
-	dadata  *dadata.Client,
-	repo *repository.Repository,
+	services *Services,
+	goodItemService  *service.GoodItemService,
 	goodUrl string,
 	queryID int,
 ) *GoodItemJob {
 	return &GoodItemJob{
-		Services: Services{
-			Ozon: ozon,
-			Dadata: dadata,
-			Repo:   repo,
-		},
+		Services: *services,
+		GoodItemService: goodItemService,
 		GoodURL: goodUrl,
 		QueryID: queryID,
 	}
@@ -60,16 +56,39 @@ func (j *GoodItemJob) Run(ctx context.Context) error {
 		return err
 	}
 
-	parsed, err := j.Parse(raw)
+	parsedRaw, err := j.Parse(raw)
 	if err != nil {
 		return err
 	}
+	parsed := parsedRaw.(*model.ParsedGoodItem)
+
 
 	log.Print(parsed)
 
-	//if err = j.Save(ctx, parsed); err != nil {
-	//	return err
-	//}
+	if err := j.GoodItemService.ProcessGoodItem(ctx, parsed, j.GoodURL, j.QueryID); err != nil {
+      return err
+  }
+
+  if parsed.Seller != nil {
+    sellerJob := SellerJob{
+      Services: j.Services,
+      SellerID: parsed.Seller.ID,
+    }
+    if err := sellerJob.Run(ctx); err != nil {
+        return err
+    }
+  }
+
+  if parsed.ReviewLink != "" {
+    reviewJob := ReviewJob{
+        Services:  j.Services,
+        ReviewURL: parsed.ReviewLink,
+				MaxPages: 5,
+    }
+    if err := reviewJob.Run(ctx); err != nil {
+        return err
+    }
+  }
 
 	return nil
 }

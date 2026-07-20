@@ -14,7 +14,7 @@ func (r *Repository) InsertSellerBrand(
 		INSERT INTO parsing_data.brand_seller (seller_id, brand_id)
 		VALUES ($1, $2)
 		ON CONFLICT (seller_id, brand_id)
-		DO NOTHING 
+		DO NOTHING;
 	`, seller_id, brand_id)
 
 	return err 

@@ -64,9 +64,17 @@ func normalizeSlug(link, prefix string) string {
 }
 
 func parseBrandSlug(link string) string {
-	link = strings.TrimPrefix(link, "/brand/")
-	link = strings.TrimSuffix(link, "/?all_items=true")
-	return link
+	re := regexp.MustCompile(
+		`/brand/(.+?)/\?all_items=true`,
+	)
+
+	match := re.FindStringSubmatch(link)
+
+	if len(match) < 2 {
+		return ""
+	}
+
+	return match[1]
 }
 
 
@@ -89,3 +97,5 @@ func parseOGRNIP(factors any) string {
 
 	return match
 }
+
+

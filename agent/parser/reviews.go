@@ -20,6 +20,7 @@ type reviewWidget struct {
 		} `json:"author"`
 
 		Content struct {
+			Score 	int     `json:"score"`
 			Comment  string `json:"comment"`
 			Positive string `json:"positive"`
 			Negative string `json:"negative"`
@@ -63,16 +64,13 @@ func ParseReview(page *ozon.PageResponse) (*ReviewPage, error) {
 
 	for _, r := range widget.Reviews {
 
-		//createdAtMs, err := strconv.ParseInt(r.CreatedAt, 10, 64)
-		//if err != nil {
-		//	return nil, fmt.Errorf("invalid createdAt %q: %w", r.CreatedAt, err)
-		//}
 
 		review := model.Review{
 			UUID:       r.UUID,
-			CreatedAt:  time.Unix(r.CreatedAt/1000, 0),
+			CreatedAt:  time.Unix(r.CreatedAt, 0),
 			Sku:        r.ItemID.String(),
 			AuthorGuid: r.Author.GUID,
+			Score:			r.Content.Score,
 			Comment:    r.Content.Comment,
 			Positive:   r.Content.Positive,
 			Negative:   r.Content.Negative,

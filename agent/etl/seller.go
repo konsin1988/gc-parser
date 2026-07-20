@@ -3,7 +3,6 @@ package etl
 import (
 	"context"
 
-	"konsin1988/gc-agent/repository"
 	"konsin1988/gc-agent/marketplace/ozon"
 	"konsin1988/gc-agent/parser"
 	"konsin1988/gc-agent/model"
@@ -51,15 +50,11 @@ func (j *SellerJob) Save(ctx context.Context, data any) error {
 }
 
 func NewSellerJob(
-	ozon *ozon.Client,
-	repo *repository.Repository,
+	services *Services,
 	sellerID string,
 ) *SellerJob {
 	return &SellerJob{
-		Services: Services{
-			Ozon: ozon,
-			Repo:   repo,
-		},
+		Services: *services,
 		SellerID: sellerID,
 	}
 }

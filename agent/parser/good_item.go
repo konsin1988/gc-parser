@@ -1,6 +1,9 @@
 package parser
 
 import (
+	"regexp"
+	"fmt"
+
 	"konsin1988/gc-agent/marketplace/ozon"
 	"konsin1988/gc-agent/model"
 )
@@ -135,14 +138,33 @@ func ParseGoodItem (page *ozon.PageResponse) (*model.ParsedGoodItem, error) {
 	}
 
 	// ----------------------------------------------------------- BRAND 
-	var brand brandWidget
-	if err := ParseWidget(page, "webBrand-", &brand); err != nil {
+	var brandwidget brandWidget
+	if err := ParseWidget(page, "webBrand-", &brandwidget); err != nil {
 		return nil, err
 	}
-	result.Brand = &model.Brand{
-		Title: brand.Content.Title.Text[0].Content,
-		Slug:  parseBrandSlug(brand.Content.Link),
+
+  key, err := FindWidgetKey(page, "webBrand-")
+  if err != nil {
+      return nil, err
+  }
+
+  raw, ok := page.WidgetStates[key]
+  if !ok {
+      return nil, fmt.Errorf("widget %q not found", key)
+  }
+	brand := &model.Brand{}
+	if len(brandwidget.Content.Title.Text) > 0 {
+		brand.Title = brandwidget.Content.Title.Text[0].Content
 	}
+
+	re := regexp.MustCompile(`/brand/(.+?)/\?all_items=true`)
+	match := re.FindStringSubmatch(string(raw))
+
+	if len(match) > 1 {
+		brand.Slug = match[1]
+	}
+
+	result.Brand = brand 
 
 	// -------------------------------------------------------------- IMAGES
 	var gallery imageWidget
