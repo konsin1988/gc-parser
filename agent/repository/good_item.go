@@ -38,12 +38,12 @@ func (r *Repository) InsertGoodItem (
 	`, goodItem.Sku, 
 		goodItem.Slug,
 		goodItem.Title,
-		*goodItem.Price,
-		*goodItem.CardPrice,
-		*goodItem.OriginalPrice,
+		goodItem.Price,
+		goodItem.CardPrice,
+		goodItem.OriginalPrice,
 		goodItem.Availability,
-		*goodItem.SellerId,
-		*goodItem.BrandId,
+		goodItem.SellerId,
+		goodItem.BrandId,
 		goodItem.ReviewLink,
 	)
 

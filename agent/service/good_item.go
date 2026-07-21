@@ -25,19 +25,30 @@ func (s *GoodItemService) ProcessGoodItem(
 	}	
 
 	// ---------------------------------------------------  InsertSeller 
-	company, err := s.Dadata.FindByOGRNIP(
-		ctx, 
-		parsed.Seller.OGRNIP,
-	)
-	if err != nil {
-		return err
-	}
-	seller := model.Seller{
-		ID: parsed.Seller.ID,	
-		Name: parsed.Seller.Name, 
-		Slug: parsed.Seller.Slug,
-		Ogrn: parsed.Seller.OGRNIP,
-		Inn: company.INN,	
+	seller := model.Seller{}	
+	if parsed.Seller.ID == "0"{
+		seller = model.Seller{
+			ID: "0",
+			Name: "ООО \"Интернет Решения\"",
+			Slug: "ozon",
+			Ogrn: "1027739244741",
+			Inn: "7704217370",
+		}
+	} else { 
+		company, err := s.Dadata.FindByOGRNIP(
+			ctx, 
+			parsed.Seller.OGRNIP,
+		)
+		if err != nil {
+			return err
+		}
+		seller = model.Seller{
+			ID: parsed.Seller.ID,	
+			Name: parsed.Seller.Name, 
+			Slug: parsed.Seller.Slug,
+			Ogrn: parsed.Seller.OGRNIP,
+			Inn: company.INN,	
+		}
 	}
 	err = s.Repo.InsertSeller(ctx, seller)
 	if err != nil{
@@ -64,8 +75,8 @@ func (s *GoodItemService) ProcessGoodItem(
 		CardPrice			: parsed.CardPrice,
 		OriginalPrice	: parsed.OriginalPrice,
 		Availability	: parsed.Availability,
-		SellerId			: &parsed.Seller.ID,
-		BrandId				:	&brandID, 
+		SellerId			: parsed.Seller.ID,
+		BrandId				:	brandID, 
 		ReviewLink		: parsed.ReviewLink,
 	}
 	err = s.Repo.InsertGoodItem(ctx, &goodItem)

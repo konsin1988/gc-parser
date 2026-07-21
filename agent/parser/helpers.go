@@ -21,9 +21,9 @@ func FindWidgetKey(page *ozon.PageResponse, prefix string) (string, error) {
 }
 
 
-func parsePrice(s string) (*int, error) {
+func parsePrice(s string) (int, error) {
     if s == "" {
-        return nil, nil
+        return 0, nil
     }
 
     s = strings.ReplaceAll(s, "\u2009", "")
@@ -32,10 +32,10 @@ func parsePrice(s string) (*int, error) {
 
     value, err := strconv.Atoi(s)
     if err != nil {
-        return nil, err
+        return 0, err
     }
 
-    return &value, nil
+    return value, nil
 }
 
 func ParseWidget[T any](page *ozon.PageResponse, prefix string, dst *T) error {
@@ -90,9 +90,7 @@ func parseSellerSlug(link string) string {
 
 func parseOGRNIP(factors any) string {
 	re := regexp.MustCompile(`\d{13,15}`)
-
 	data, _ := json.Marshal(factors)
-
 	match := re.FindString(string(data))
 
 	return match

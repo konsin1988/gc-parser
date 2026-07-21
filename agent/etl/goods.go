@@ -2,13 +2,17 @@ package etl
 
 import (
 	"context"
+	"log"
+	"sync"
 
 	"konsin1988/gc-agent/marketplace/ozon"
 	"konsin1988/gc-agent/parser"
+	"konsin1988/gc-agent/service"
+	"konsin1988/gc-agent/model"
 )
 
 type SearchGoodsJob struct {
-	Services	
+	*Services	
 
   SearchURL 	string
 	QueryId			int
@@ -37,7 +41,7 @@ func NewSearchGoodsJob(
 	maxPages int,
 ) *SearchGoodsJob {
 	return &SearchGoodsJob{
-		Services: *services,
+		Services: services,
 		SearchURL: services.Ozon.BuildSearchPageURL(searchText),
 		QueryId: queryID,
 		maxPages: maxPages,
@@ -46,6 +50,12 @@ func NewSearchGoodsJob(
 
 
 func (j *SearchGoodsJob) Run(ctx context.Context) error {
+	goodItemService := service.NewGoodItemService(
+		j.Services.Repo,
+		j.Services.Ozon,
+		j.Services.Dadata,
+	)
+
 	for i := 0; i < j.maxPages; i++ {
 		raw, err := j.Fetch(ctx)
 		if err != nil {
@@ -57,12 +67,32 @@ func (j *SearchGoodsJob) Run(ctx context.Context) error {
 			return err
 		}
 
-		//for _, good := range goodsPage.Goods {
-	  //  go func(g model.GoodLink) {
-	  //      job := &GoodItemJob{...}
-	  //      _ = job.Run(ctx)
-	  //  }(good)
-		//}
+
+		var wg sync.WaitGroup
+
+		for _, good := range parsed.Goods {
+			sem := make(chan struct{}, 3) // max 10 concurrent jobs
+
+			wg.Add(1)
+	    go func(g model.Good) {
+					defer wg.Done()
+
+					sem <- struct{}{}
+    			defer func() { <-sem }()
+					goodItemJob := NewGoodItemJob(
+						j.Services,
+						goodItemService,
+						g.Link,
+						j.QueryId,
+					)
+
+					if err := goodItemJob.Run(ctx); err != nil {
+						log.Print(err)
+					}
+	    }(good)
+		}
+
+		wg.Wait()
 
 		if parsed.NextPage == "" {
 			break
