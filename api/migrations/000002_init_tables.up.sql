@@ -44,7 +44,7 @@ CREATE TABLE parsing_data.query (
 -- ===========================================
 CREATE TABLE parsing_data.brand (
     id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    slug VARCHAR(100) NOT NULL,
+    slug VARCHAR(128) NOT NULL,
     title VARCHAR(128) NOT NULL,
 
     CONSTRAINT uq_brand_slug
@@ -96,7 +96,7 @@ CREATE TABLE parsing_data.brand_seller (
 -- =================================================
 CREATE TABLE parsing_data.good_item (
     sku VARCHAR(50) PRIMARY KEY,
-    slug VARCHAR(100) NOT NULL,
+    slug VARCHAR(255) NOT NULL,
     title VARCHAR(255) NOT NULL,
     price INTEGER NULL,
     card_price INTEGER NULL,

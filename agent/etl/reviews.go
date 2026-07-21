@@ -8,7 +8,7 @@ import (
 )
 
 type ReviewJob struct {
-   	Services 
+   	*Services 
 
     ReviewURL			string 
 		MaxPages			int
@@ -42,7 +42,7 @@ func NewReviewJob(
 	maxPages	int,
 ) *ReviewJob {
 	return &ReviewJob{
-		Services: *services,
+		Services: services,
 		ReviewURL: reviewURL,
 		MaxPages: maxPages,
 	}

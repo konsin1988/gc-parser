@@ -11,7 +11,7 @@ import (
 )
 
 type GoodItemJob struct {
-	Services	
+	*Services	
 
 	GoodItemService 	*service.GoodItemService
 	GoodURL						string
@@ -42,7 +42,7 @@ func NewGoodItemJob(
 	queryID int,
 ) *GoodItemJob {
 	return &GoodItemJob{
-		Services: *services,
+		Services: services,
 		GoodItemService: goodItemService,
 		GoodURL: goodUrl,
 		QueryID: queryID,
@@ -62,14 +62,13 @@ func (j *GoodItemJob) Run(ctx context.Context) error {
 	}
 	parsed := parsedRaw.(*model.ParsedGoodItem)
 
-
 	log.Print(parsed)
-
+	log.Print("==========================")
 	if err := j.GoodItemService.ProcessGoodItem(ctx, parsed, j.GoodURL, j.QueryID); err != nil {
-      return err
+    	return err
   }
 
-  if parsed.Seller != nil {
+  if parsed.Seller != nil && parsed.Seller.ID != "0" && parsed.Seller.ID != "" {
     sellerJob := SellerJob{
       Services: j.Services,
       SellerID: parsed.Seller.ID,

@@ -2,6 +2,7 @@ package etl
 
 import (
 	"context"
+	"log"
 
 	"konsin1988/gc-agent/marketplace/ozon"
 	"konsin1988/gc-agent/parser"
@@ -9,7 +10,7 @@ import (
 )
 
 type SellerJob struct {
-   	Services 
+   	*Services 
 
     SellerID string 
 }
@@ -54,7 +55,7 @@ func NewSellerJob(
 	sellerID string,
 ) *SellerJob {
 	return &SellerJob{
-		Services: *services,
+		Services: services,
 		SellerID: sellerID,
 	}
 }
@@ -71,6 +72,7 @@ func (j *SellerJob) Run(ctx context.Context) error {
 		return err
 	}
 
+	log.Print(parsed)
 	if err = j.Save(ctx, parsed); err != nil {
 		return err
 	}

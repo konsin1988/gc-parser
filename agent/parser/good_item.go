@@ -94,6 +94,36 @@ func ParseGoodItem (page *ozon.PageResponse) (*model.ParsedGoodItem, error) {
 	result := &model.ParsedGoodItem{}
 	result.Sku = page.PageInfo.AnalyticsInfo.Sku.String()
 
+	// ------------------------------------------------------------ SELLER 
+	var seller sellerWidget
+	
+	if err := ParseWidget(page, "webCurrentSeller-", &seller); err != nil {
+		return nil, err
+	}
+
+	result.Seller = &model.ParsedSeller{
+		ID: seller.Header.Badge.Subscribed.Common.Action.Params.SellerID,
+		Slug: parseSellerSlug(
+			seller.SellerCell.Common.Action.Link,
+		),
+		OGRNIP: parseOGRNIP(seller.TrustFactors),
+	}
+
+	if result.Seller.ID == ""{
+		return nil, fmt.Errorf("sellerId is empty! Couldn't find SellerId")
+	}
+	
+	if result.Seller.ID != "0" {
+		for _, factor := range seller.TrustFactors {
+			if factor.Title.Text == "О магазине" &&
+				len(factor.Tooltip.Subtitle) > 0 {
+		
+				result.Seller.Name = factor.Tooltip.Subtitle[0].Content
+				break
+			}
+		}
+	}
+
 	// ------------------------------------------------------------------------ TITLE 
 	var heading productHeadingWidget
 	if err := ParseWidget(page, "webProductHeading-", &heading); err != nil {
@@ -204,32 +234,6 @@ func ParseGoodItem (page *ozon.PageResponse) (*model.ParsedGoodItem, error) {
 		return nil, err
 	}
 	result.ReviewLink = score.Link
-
-
-	// ------------------------------------------------------------ SELLER 
-	var seller sellerWidget
-	
-	if err := ParseWidget(page, "webCurrentSeller-", &seller); err != nil {
-		return nil, err
-	}
-
-	result.Seller = &model.ParsedSeller{
-		ID: seller.Header.Badge.Subscribed.Common.Action.Params.SellerID,
-		Slug: parseSellerSlug(
-			seller.SellerCell.Common.Action.Link,
-		),
-		OGRNIP: parseOGRNIP(seller.TrustFactors),
-	}
-	
-	for _, factor := range seller.TrustFactors {
-		if factor.Title.Text == "О магазине" &&
-			len(factor.Tooltip.Subtitle) > 0 {
-	
-			result.Seller.Name = factor.Tooltip.Subtitle[0].Content
-			break
-		}
-	}
-
 
 	return result, nil
 }
