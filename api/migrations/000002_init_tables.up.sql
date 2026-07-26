@@ -114,12 +114,6 @@ CREATE TABLE parsing_data.good_item (
         FOREIGN KEY (seller_id)
         REFERENCES parsing_data.seller(id)
         ON DELETE SET NULL 
-        ON UPDATE CASCADE,
-
-    CONSTRAINT fk_good_brand
-        FOREIGN KEY (brand_id)
-        REFERENCES parsing_data.brand(id)
-        ON DELETE SET NULL 
         ON UPDATE CASCADE
 );
 

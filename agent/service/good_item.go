@@ -17,7 +17,7 @@ func (s *GoodItemService) ProcessGoodItem(
 	var err error
 
 	// --------------------------------------------------  Brand
-	if parsed.Brand != nil{	
+	if parsed.Brand != nil {	
 		brandID, err = s.Repo.InsertBrand(ctx, *parsed.Brand) 
 		if err != nil {
 			return err

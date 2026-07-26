@@ -1,8 +1,8 @@
 package parser
 
 import (
-	"regexp"
 	"fmt"
+	"strings"
 
 	"konsin1988/gc-agent/marketplace/ozon"
 	"konsin1988/gc-agent/model"
@@ -26,18 +26,6 @@ type breadcrumbsWidget struct {
 	} `json:"breadcrumbs"`
 }
 
-
-type brandWidget struct {
-	Content struct {
-		Link string `json:"link"`
-
-		Title struct {
-			Text []struct {
-				Content string `json:"content"`
-			} `json:"text"`
-		} `json:"title"`
-	} `json:"content"`
-}
 
 type imageWidget struct {
 	CoverImage string `json:"coverImage"`
@@ -150,51 +138,40 @@ func ParseGoodItem (page *ozon.PageResponse) (*model.ParsedGoodItem, error) {
 	if err != nil {
 		return nil, err
 	}
-	result.Availability = 	prices.Availability
+	result.Availability =	prices.Availability
 
-	// ----------------------------------------------------------- CATEGORIES 
+	// ----------------------------------------------------- CATEGORIES AND BRAND
 	var crumbs breadcrumbsWidget
 	
 	if err := ParseWidget(page, "breadCrumbs", &crumbs); err != nil {
 		return nil, err
 	}
-	result.Categories = make([]model.Category, 0, len(crumbs.Breadcrumbs))
+	categories := make([]model.Category, 0, len(crumbs.Breadcrumbs))
 	
 	for _, c := range crumbs.Breadcrumbs {
-		result.Categories = append(result.Categories, model.Category{
+		categories = append(categories, model.Category{
 			Name: c.Text,
 			Slug: normalizeSlug(c.Link, "/category"),
 		})
 	}
 
-	// ----------------------------------------------------------- BRAND 
-	var brandwidget brandWidget
-	if err := ParseWidget(page, "webBrand-", &brandwidget); err != nil {
-		return nil, err
+	if len(categories) > 0 {
+	  last := categories[len(categories)-1]
+	
+	  if strings.Contains(last.Slug, "/") {
+	    parts := strings.Split(last.Slug, "/")
+	
+	    result.Brand = &model.Brand{
+	        Title: last.Name,
+	        Slug:  parts[len(parts)-1],
+	    }
+	
+	    result.Categories = categories[:len(categories)-1]
+	  } else {
+	    result.Categories = categories
+	  }
 	}
 
-  key, err := FindWidgetKey(page, "webBrand-")
-  if err != nil {
-      return nil, err
-  }
-
-  raw, ok := page.WidgetStates[key]
-  if !ok {
-      return nil, fmt.Errorf("widget %q not found", key)
-  }
-	brand := &model.Brand{}
-	if len(brandwidget.Content.Title.Text) > 0 {
-		brand.Title = brandwidget.Content.Title.Text[0].Content
-	}
-
-	re := regexp.MustCompile(`/brand/(.+?)/\?all_items=true`)
-	match := re.FindStringSubmatch(string(raw))
-
-	if len(match) > 1 {
-		brand.Slug = match[1]
-	}
-
-	result.Brand = brand 
 
 	// -------------------------------------------------------------- IMAGES
 	var gallery imageWidget

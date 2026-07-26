@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"sync"
+	"fmt"
 
 	"konsin1988/gc-agent/marketplace/ozon"
 	"konsin1988/gc-agent/parser"
@@ -11,57 +12,69 @@ import (
 	"konsin1988/gc-agent/model"
 )
 
-type SearchGoodsJob struct {
+type GoodsByBrandJob struct {
 	*Services	
 
-  SearchURL 	string
-	QueryText 	string
+	BrandID			int
+	SearchURL		string
 	maxPages 		int
 }
 
 
-func (j *SearchGoodsJob) Fetch(ctx context.Context) (any, error) {
+func (j *GoodsByBrandJob) Fetch(ctx context.Context) (any, error) {
     return j.Ozon.DataByURL(ctx, j.SearchURL)
 }
 
-func (j *SearchGoodsJob) Parse(data any) (any, error) {
+func (j *GoodsByBrandJob) Parse(data any) (any, error) {
     page := data.(*ozon.PageResponse)
 
     return parser.ParseGoods(page)
 }
 
-func (j *SearchGoodsJob) Save(ctx context.Context, data any) error {
+func (j *GoodsByBrandJob) Save(ctx context.Context, data any) error {
 		return nil
 }
 
-func NewSearchGoodsJob(
+func NewGoodsByBrandJob(
 	services *Services,
-	searchText string,
+	brandID  int,
 	maxPages int,
-) *SearchGoodsJob {
-	return &SearchGoodsJob{
+) *GoodsByBrandJob {
+	return &GoodsByBrandJob{
 		Services: services,
-		SearchURL: services.Ozon.BuildSearchPageURL(searchText),
-		QueryText: searchText,
+		BrandID: brandID,
 		maxPages: maxPages,
 	}
 }
 
 
-func (j *SearchGoodsJob) Run(ctx context.Context) error {
+func (j *GoodsByBrandJob) Run(ctx context.Context) error {
 	goodItemService := service.NewGoodItemService(
 		j.Services.Repo,
 		j.Services.Ozon,
 		j.Services.Dadata,
 	)
 
+
+	brand, err := j.Services.Repo.GetBrandByID(
+		ctx,
+		j.BrandID,
+	)
+	if err != nil {
+		return err
+	}
+
+	j.SearchURL = fmt.Sprintf("/brand/%s/", brand.Slug)
+
+
 	queryID, err := j.Services.Repo.InsertQuery(
 		ctx,
-		j.QueryText,
+		j.SearchURL,
 	)
 	if err != nil {
 		log.Fatal(err)
 	}
+
 
 	for i := 0; i < j.maxPages; i++ {
 		raw, err := j.Fetch(ctx)
@@ -104,6 +117,7 @@ func (j *SearchGoodsJob) Run(ctx context.Context) error {
 		if parsed.NextPage == "" {
 			break
 		}
+
 		j.SearchURL = parsed.NextPage
 	}
 	return nil

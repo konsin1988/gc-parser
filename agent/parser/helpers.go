@@ -96,4 +96,20 @@ func parseOGRNIP(factors any) string {
 	return match
 }
 
+type paginatorWidget struct {
+    NextPage string `json:"nextPage"`
+}
 
+func ResolveNextPage(page *ozon.PageResponse) string {
+    if page.NextPage != "" {
+        return page.NextPage
+    }
+
+    // Brand/category first page
+    var paginator paginatorWidget
+    if err := ParseWidget(page, "infiniteVirtualPaginator-", &paginator); err == nil {
+        return paginator.NextPage
+    }
+
+    return ""
+}

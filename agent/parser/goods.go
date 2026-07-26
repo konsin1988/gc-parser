@@ -33,7 +33,6 @@ func ParseGoods(page *ozon.PageResponse) (*model.GoodsPage, error) {
 		return nil, fmt.Errorf("widget %q not found", gridKey)
 	}
 
-	// WidgetStates values are JSON strings, not JSON objects.
 	var widgetJSON string
 	if err := json.Unmarshal(rawWidget, &widgetJSON); err != nil {
 		return nil, err
@@ -55,6 +54,6 @@ func ParseGoods(page *ozon.PageResponse) (*model.GoodsPage, error) {
 
 	return &model.GoodsPage{
 		Goods:		items,
-		NextPage:	page.NextPage,	
+		NextPage:	ResolveNextPage(page),	
 	}, nil
 }
