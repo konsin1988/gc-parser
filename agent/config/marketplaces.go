@@ -9,7 +9,6 @@ type OzonConfig struct {
 	Cookie						string
 	SearchURL					string
 	SearchQuery				string
-	SearchCategory		string
 	SingleItemURL			string
 }
 

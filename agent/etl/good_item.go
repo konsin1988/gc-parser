@@ -63,7 +63,7 @@ func (j *GoodItemJob) Run(ctx context.Context) error {
 	parsed := parsedRaw.(*model.ParsedGoodItem)
 
 	log.Print(parsed)
-	log.Print("==========================")
+	log.Print("==============================================")
 	if err := j.GoodItemService.ProcessGoodItem(ctx, parsed, j.GoodURL, j.QueryID); err != nil {
     	return err
   }

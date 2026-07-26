@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 
 	"konsin1988/gc-agent/model"
 )
@@ -27,4 +29,29 @@ func (r *Repository) InsertBrand (
 	}
 
 	return id, nil
+}
+
+
+func (r *Repository) GetBrandByID (
+	ctx context.Context,
+	brandID	int,
+) (*model.Brand, error) {
+	var brand model.Brand
+	err := r.db.QueryRowContext(ctx, `
+        SELECT slug, title
+        FROM parsing_data.brand
+        WHERE id = $1
+    `, brandID).Scan(
+        &brand.Slug,
+        &brand.Title,
+    )
+
+    if err != nil {
+        if errors.Is(err, sql.ErrNoRows) {
+            return nil, nil 
+        }
+        return nil, err
+    }
+    return &brand, nil
+
 }
