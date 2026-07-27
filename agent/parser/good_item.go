@@ -2,7 +2,6 @@ package parser
 
 import (
 	"fmt"
-	"strings"
 
 	"konsin1988/gc-agent/marketplace/ozon"
 	"konsin1988/gc-agent/model"
@@ -140,37 +139,23 @@ func ParseGoodItem (page *ozon.PageResponse) (*model.ParsedGoodItem, error) {
 	}
 	result.Availability =	prices.Availability
 
+
 	// ----------------------------------------------------- CATEGORIES AND BRAND
 	var crumbs breadcrumbsWidget
 	
 	if err := ParseWidget(page, "breadCrumbs", &crumbs); err != nil {
 		return nil, err
 	}
+	
 	categories := make([]model.Category, 0, len(crumbs.Breadcrumbs))
 	
 	for _, c := range crumbs.Breadcrumbs {
 		categories = append(categories, model.Category{
 			Name: c.Text,
-			Slug: normalizeSlug(c.Link, "/category"),
+			Slug: c.Link,
 		})
 	}
-
-	if len(categories) > 0 {
-	  last := categories[len(categories)-1]
-	
-	  if strings.Contains(last.Slug, "/") {
-	    parts := strings.Split(last.Slug, "/")
-	
-	    result.Brand = &model.Brand{
-	        Title: last.Name,
-	        Slug:  parts[len(parts)-1],
-	    }
-	
-	    result.Categories = categories[:len(categories)-1]
-	  } else {
-	    result.Categories = categories
-	  }
-	}
+	result.Categories, result.Brand = ParseBreadcrumbs(categories)
 
 
 	// -------------------------------------------------------------- IMAGES

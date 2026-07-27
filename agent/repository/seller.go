@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 
 	"konsin1988/gc-agent/model"
 )
@@ -23,4 +25,26 @@ func (r *Repository) InsertSeller(
 	`, seller.ID, seller.Name, seller.Slug, seller.Ogrn, seller.Inn)
 
 	return err 
+}
+
+
+func (r *Repository) GetSellerByID (
+	ctx context.Context,
+	sellerID	int,
+) (*model.Seller, error) {
+	var seller model.Seller
+	err := r.db.QueryRowContext(ctx, `
+        SELECT slug
+        FROM parsing_data.seller
+        WHERE id = $1
+    `, sellerID).Scan(
+        &seller.Slug,
+    )
+    if err != nil {
+        if errors.Is(err, sql.ErrNoRows) {
+            return nil, nil 
+        }
+        return nil, err
+    }
+    return &seller, nil
 }
