@@ -113,3 +113,4 @@ func ResolveNextPage(page *ozon.PageResponse) string {
 
     return ""
 }
+

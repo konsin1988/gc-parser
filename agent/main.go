@@ -1,7 +1,6 @@
 package main
 
 import (
-  _ "net/http"
   "log"
 	"context"
 	"strconv"
@@ -17,6 +16,7 @@ import (
   _ "github.com/bogdanfinn/tls-client"
   _ "github.com/bogdanfinn/tls-client/profiles"
 )
+
 
 func main() {
 	config.Load()
@@ -47,33 +47,38 @@ func main() {
 	}
 
 	switch cmd.Command {
-	case "search":
-		// goodsJob
-		goodsJob := etl.NewSearchGoodsJob(
-			services,
-			cmd.Value,
-			cmd.MaxPages,
-		)
+	case "search", "brand", "seller", "category":
 
-		if err := goodsJob.Run(ctx); err != nil {
-			log.Fatal(err)
-		}
-	case "brand":
-		// goodsJob
-		brandId, err := strconv.Atoi(cmd.Value)
-		if err != nil {
-			log.Fatal(err)
+		if cmd.Command == "search" {
+			goodsJob := etl.NewSearchGoodsJob(
+				services,
+				cmd.Value,
+				cmd.MaxPages,
+			)
+
+			if err := goodsJob.Run(ctx); err != nil {
+				log.Fatal(err)
+			}
+		} else {
+			itemId, err := strconv.Atoi(cmd.Value)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			goodsByItemPrefixJob := etl.NewGoodsByItemPrefixJob(
+				services,
+				cmd.Command,
+				itemId,
+				cmd.MaxPages,
+			)
+
+			if err := goodsByItemPrefixJob.Run(ctx); err != nil {
+				log.Fatal(err)
+			}
 		}
 
-		goodsByBrandJob := etl.NewGoodsByBrandJob(
-			services,
-			brandId,
-			cmd.MaxPages,
-		)
-
-		if err := goodsByBrandJob.Run(ctx); err != nil {
-			log.Fatal(err)
-		}
+	default:
+	  log.Fatalf("unknown command: %s", cmd.Command)
 	}
 }
 

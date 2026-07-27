@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 
 	"konsin1988/gc-agent/model"
 )
@@ -80,4 +82,26 @@ func (r *Repository) InsertOzonCategories (
 	    parentID = id
 	}
 	return parentID, nil
+}
+
+
+func (r *Repository) GetCategoryByID (
+	ctx context.Context,
+	catID	int,
+) (*model.Category, error) {
+	var category model.Category
+	err := r.db.QueryRowContext(ctx, `
+        SELECT slug
+        FROM parsing_data.category
+        WHERE id = $1
+    `, catID).Scan(
+        &category.Slug,
+    )
+    if err != nil {
+        if errors.Is(err, sql.ErrNoRows) {
+            return nil, nil 
+        }
+        return nil, err
+    }
+    return &category, nil
 }

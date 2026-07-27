@@ -12,60 +12,97 @@ import (
 	"konsin1988/gc-agent/model"
 )
 
-type GoodsByBrandJob struct {
+type GoodsByItemPrefixJob struct {
 	*Services	
 
-	BrandID			int
+	ItemID			int
+	SearchBase	string
 	SearchURL		string
 	maxPages 		int
 }
 
 
-func (j *GoodsByBrandJob) Fetch(ctx context.Context) (any, error) {
+func (j *GoodsByItemPrefixJob) Fetch(ctx context.Context) (any, error) {
     return j.Ozon.DataByURL(ctx, j.SearchURL)
 }
 
-func (j *GoodsByBrandJob) Parse(data any) (any, error) {
+func (j *GoodsByItemPrefixJob) Parse(data any) (any, error) {
     page := data.(*ozon.PageResponse)
 
     return parser.ParseGoods(page)
 }
 
-func (j *GoodsByBrandJob) Save(ctx context.Context, data any) error {
+func (j *GoodsByItemPrefixJob) Save(ctx context.Context, data any) error {
 		return nil
 }
 
-func NewGoodsByBrandJob(
+func NewGoodsByItemPrefixJob(
 	services *Services,
-	brandID  int,
+	searchBase  string,
+	itemID  int,
 	maxPages int,
-) *GoodsByBrandJob {
-	return &GoodsByBrandJob{
+) *GoodsByItemPrefixJob {
+	return &GoodsByItemPrefixJob{
 		Services: services,
-		BrandID: brandID,
+		SearchBase: searchBase,
+		ItemID: itemID,
 		maxPages: maxPages,
 	}
 }
 
 
-func (j *GoodsByBrandJob) Run(ctx context.Context) error {
+func (j *GoodsByItemPrefixJob) getSlugByID (ctx context.Context ) (string, error) {
+	switch j.SearchBase {
+	case "brand":
+		brand, err := j.Services.Repo.GetBrandByID(
+			ctx,
+			j.ItemID,
+		)
+		if err != nil {
+			return "", err 
+		}
+		return brand.Slug, nil
+
+	case "category":
+		category, err := j.Services.Repo.GetCategoryByID(
+			ctx,
+			j.ItemID,
+		)
+		if err != nil {
+			return "", err 
+		}
+		return category.Slug, nil
+
+	case "seller":
+		seller, err := j.Services.Repo.GetSellerByID(
+			ctx,
+			j.ItemID,
+		)
+		if err != nil {
+			return "", err 
+		}
+		return seller.Slug, nil
+	}
+
+	return "", nil
+}
+
+
+func (j *GoodsByItemPrefixJob) Run(ctx context.Context) error {
 	goodItemService := service.NewGoodItemService(
 		j.Services.Repo,
 		j.Services.Ozon,
 		j.Services.Dadata,
 	)
 
-
-	brand, err := j.Services.Repo.GetBrandByID(
-		ctx,
-		j.BrandID,
-	)
+	slug, err := j.getSlugByID(ctx) 
 	if err != nil {
 		return err
 	}
 
-	j.SearchURL = fmt.Sprintf("/brand/%s/", brand.Slug)
+	j.SearchURL = fmt.Sprintf("/%s/%s/", j.SearchBase, slug)
 
+	log.Print(j.SearchURL)
 
 	queryID, err := j.Services.Repo.InsertQuery(
 		ctx,

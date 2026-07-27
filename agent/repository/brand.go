@@ -38,12 +38,11 @@ func (r *Repository) GetBrandByID (
 ) (*model.Brand, error) {
 	var brand model.Brand
 	err := r.db.QueryRowContext(ctx, `
-        SELECT slug, title
+        SELECT slug 
         FROM parsing_data.brand
         WHERE id = $1
     `, brandID).Scan(
         &brand.Slug,
-        &brand.Title,
     )
 
     if err != nil {
@@ -53,5 +52,4 @@ func (r *Repository) GetBrandByID (
         return nil, err
     }
     return &brand, nil
-
 }
