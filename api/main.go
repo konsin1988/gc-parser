@@ -5,31 +5,35 @@ import (
   "log"
 
   config "konsin1988/gc-api/config"
-  health "konsin1988/gc-api/db/health"
-	http_t "konsin1988/gc-api/transport/http"
-	db "konsin1988/gc-api/db"
+  repo "konsin1988/gc-api/repository"
+	"konsin1988/gc-api/service"
+	http_t "konsin1988/gc-api/http"
 )
 
 func main() {
 	config.ConnectDB()
   defer config.DB.Close()
 
-	db.RunMigrations()
+	repo.RunMigrations()
+  repo := repo.NewRepository(config.DB)
 
-  healthRepo := health.NewHealthRepository(config.DB)
-	healthService := health.NewService(healthRepo)
+	healthService := service.NewHealthService(repo)
   healthHandler := http_t.NewHealthHandler(healthService)
+
+	sellerService := service.NewSellerService(repo)
+	sellerHandler := http_t.NewSellerHandler(sellerService)
 
 	api := http.NewServeMux()
 	
-	//api.HandleFunc("GET /containers", containerHandler.ListContainers)
-	//api.Handle("/nodes", nodeHandler)
-	
-	
-	api.Handle("/health", healthHandler)
+	api.Handle("GET /health", healthHandler)
+
+	api.HandleFunc("GET /sellers/", func(w http.ResponseWriter, r *http.Request) {
+	    http.Redirect(w, r, "/sellers", http.StatusMovedPermanently)
+	})
+	api.Handle("GET /sellers", sellerHandler)
 	//root.Handle("/api/", auth.Middleware(api))
 
-  log.Println("Server started on :8013")
-	log.Fatal(http.ListenAndServe("0.0.0.0:8013", api))
+  log.Println("Server started on :8000")
+	log.Fatal(http.ListenAndServe("0.0.0.0:8000", api))
 }
 

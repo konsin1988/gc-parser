@@ -49,39 +49,43 @@ func (r *Repository) insertCategoryRelation(
 	return err 
 }
 
-
-
-func (r *Repository) InsertOzonCategories (
+func (r *Repository) InsertOzonCategories(
     ctx context.Context,
-		breadcrumb []model.Category,
+    breadcrumb []model.Category,
 ) (int, error) {
 
-	var parentID int
-	
-	for _, cat := range breadcrumb {
-	
-	    id, err := r.insertCategory(
-	        ctx,
-	        "ozon",
-	        cat,
-	    )
-	    if err != nil {
-	        return 0, err
-	    }
-	
-	    if parentID != 0 {
-	        err = r.insertCategoryRelation(
-	            ctx,
-	            parentID,
-	            id,
-	        )
-	        if err != nil {
-	            return 0, err
-	        }
-	    }
-	    parentID = id
-	}
-	return parentID, nil
+    ids := make([]int, 0, len(breadcrumb))
+
+    for _, cat := range breadcrumb {
+        id, err := r.insertCategory(
+            ctx,
+            "ozon",
+            cat,
+        )
+        if err != nil {
+            return 0, err
+        }
+
+        ids = append(ids, id)
+    }
+
+    for i := 0; i < len(ids); i++ {
+        for j := i; j < len(ids); j++ {
+            if err := r.insertCategoryRelation(
+                ctx,
+                ids[i],
+                ids[j],
+            ); err != nil {
+                return 0, err
+            }
+        }
+    }
+
+    if len(ids) == 0 {
+        return 0, nil
+    }
+
+    return ids[len(ids)-1], nil
 }
 
 
