@@ -5,20 +5,27 @@ type SellerFilter struct {
   CategoryID   *int
   MinGoods     *int
   MinScore     *float64
+
+	Sort				[]SellerSort
+}
+
+type SellerSort struct {
+	Field			string
+	Order			string
 }
 
 
 type SellerListItem struct {
-	ID											string           
-	Name										string					 
-  Slug										string					 
-  Ogrn										string					 
-  Inn											string					 
-	GoodsAmount 						int     				 
-	AverageReviewScore			float64 				 
+	ID											string           `json:"id"` 
+	Name										string					 `json:"name"`
+	Slug										string					 `json:"slug"`
+	Ogrn										string					 `json:"ogrn"`
+	Inn											string					 `json:"inn"`
+	GoodsAmount 						int     				 `json:"goodsAmount"`
+	AverageReviewScore			float64 				 `json:"averageReviewScore"`
 }
 
-type ResponseSellerListItem struct {
+type ResponseSellerById struct {
 	ID											string            `json:"id"`
 	Name										string						`json:"name"`	
   Slug										string						`json:"slug"`

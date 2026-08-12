@@ -30,7 +30,10 @@ func main() {
 	api.HandleFunc("GET /sellers/", func(w http.ResponseWriter, r *http.Request) {
 	    http.Redirect(w, r, "/sellers", http.StatusMovedPermanently)
 	})
+
+	// sellers
 	api.Handle("GET /sellers", sellerHandler)
+	api.Handle("GET /seller/{id}", sellerHandler)
 	//root.Handle("/api/", auth.Middleware(api))
 
   log.Println("Server started on :8000")
