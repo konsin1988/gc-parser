@@ -8,6 +8,7 @@ import (
 
 type SellerRepository interface {
 	SellerList(ctx context.Context, filter model.SellerFilter) ([]model.SellerListItem, error)
+	SellerById(ctx context.Context, SellerID string) (*model.SellerListItem, error)
 	SellerBrands(ctx context.Context, sellerIDs []string) (map[string][]model.BrandSeller, error)
 	SellerGoods(ctx context.Context, sellerIDs []string) (map[string][]model.GoodSeller, error)
 }
@@ -23,43 +24,48 @@ func NewSellerService(repo SellerRepository) *SellerService {
 func (s *SellerService) SellerList(
     ctx context.Context,
     filter model.SellerFilter,
-) ([]model.ResponseSellerListItem, error) {
+) ([]model.SellerListItem, error) {
 
     sellers, err := s.repo.SellerList(ctx, filter)
     if err != nil {
         return nil, err
     }
+		return sellers, nil
+}
 
-    sellerIDs := make([]string, 0, len(sellers))
-    for _, seller := range sellers {
-        sellerIDs = append(sellerIDs, seller.ID)
-    }
+func (s *SellerService) SellerById(
+    ctx context.Context,
+		sellerID string,
+) (*model.ResponseSellerById, error) {
 
-    brandsBySeller, err := s.repo.SellerBrands(ctx, sellerIDs)
+    seller, err := s.repo.SellerById(ctx, sellerID)
     if err != nil {
         return nil, err
     }
 
-    goodsBySeller, err := s.repo.SellerGoods(ctx, sellerIDs)
+		sellerIdList := []string{seller.ID}
+
+    brandsBySeller, err := s.repo.SellerBrands(ctx, sellerIdList)
     if err != nil {
         return nil, err
     }
 
-    response := make([]model.ResponseSellerListItem, 0, len(sellers))
-
-    for _, seller := range sellers {
-        response = append(response, model.ResponseSellerListItem{
-            ID:                 seller.ID,
-            Name:               seller.Name,
-            Slug:               seller.Slug,
-            Ogrn:               seller.Ogrn,
-            Inn:                seller.Inn,
-            GoodsAmount:        seller.GoodsAmount,
-            AverageReviewScore: seller.AverageReviewScore,
-            Brands:             brandsBySeller[seller.ID],
-            Goods:              goodsBySeller[seller.ID],
-        })
+    goodsBySeller, err := s.repo.SellerGoods(ctx, sellerIdList)
+    if err != nil {
+        return nil, err
     }
 
-    return response, nil
+		response := &model.ResponseSellerById{
+		        ID:                 seller.ID,
+		        Name:               seller.Name,
+		        Slug:               seller.Slug,
+		        Ogrn:               seller.Ogrn,
+		        Inn:                seller.Inn,
+		        GoodsAmount:        seller.GoodsAmount,
+		        AverageReviewScore: seller.AverageReviewScore,
+		        Brands:             brandsBySeller[seller.ID],
+		        Goods:              goodsBySeller[seller.ID],
+		    }
+		
+		return response, nil
 }

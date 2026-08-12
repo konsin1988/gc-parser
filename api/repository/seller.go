@@ -4,6 +4,8 @@ import (
     "context"
 		"fmt"
 		"strings"
+		"errors"
+		"database/sql"
 
 		"github.com/lib/pq"
 
@@ -98,9 +100,39 @@ func (r *Repository) SellerList(
         query += "\nHAVING " + strings.Join(having, " AND ")
     }
 
-    query += `
-        ORDER BY goods_amount DESC, s.name
-    `
+
+		sortColumns := map[string]string{
+		    "name":  "s.name",
+		    "goods": "goods_amount",
+		    "score": "average_review_score",
+		}
+
+		sortParts := make([]string, 0, len(filter.Sort))
+		
+		for _, sort := range filter.Sort {
+		    column, ok := sortColumns[sort.Field]
+		    if !ok {
+		        return nil, fmt.Errorf("invalid sort field: %s", sort.Field)
+		    }
+		
+		    direction := "ASC"
+		
+		    if sort.Order == "desc" {
+		        direction = "DESC"
+		    }
+		
+		    sortParts = append(
+		        sortParts,
+		        fmt.Sprintf("%s %s", column, direction),
+		    )
+		}
+
+		if len(sortParts) > 0 {
+		    query += "\nORDER BY " + strings.Join(sortParts, ", ")
+		} else {
+		    query += "\nORDER BY goods_amount DESC, s.id"
+		}
+
 
     rows, err := r.db.QueryContext(ctx, query, args...)
     if err != nil {
@@ -231,4 +263,57 @@ func (r *Repository) SellerGoods(
     }
 
     return result, rows.Err()
+}
+
+
+// ###################################################### SELLER BY ID
+
+func (r *Repository) SellerById(
+    ctx context.Context,
+		sellerID string,
+) (*model.SellerListItem, error) {
+
+    query := `
+        SELECT
+            s.id,
+            s.name,
+            s.slug,
+            s.ogrn_ogrnip,
+            s.inn,
+            COUNT(DISTINCT gi.sku) AS goods_amount,
+            round(COALESCE(AVG(rv.score), 0), 2) AS average_review_score
+        FROM parsing_data.seller s
+        LEFT JOIN parsing_data.good_item gi
+            ON gi.seller_id = s.id
+        LEFT JOIN parsing_data.review rv
+            ON rv.sku = gi.sku
+				WHERE s.id = $1
+        GROUP BY
+            s.id,
+            s.name,
+            s.slug,
+            s.ogrn_ogrnip,
+            s.inn
+
+    `
+		var seller model.SellerListItem
+
+    err := r.db.QueryRowContext(ctx, query, sellerID).Scan(
+        &seller.ID,
+        &seller.Name,
+        &seller.Slug,
+        &seller.Ogrn,
+        &seller.Inn,
+        &seller.GoodsAmount,
+        &seller.AverageReviewScore,
+    )
+
+    if err != nil {
+        if errors.Is(err, sql.ErrNoRows) {
+            return nil, nil
+        }
+        return nil, err
+    }
+
+    return &seller, nil
 }
