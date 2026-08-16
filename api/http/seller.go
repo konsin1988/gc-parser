@@ -14,6 +14,7 @@ import (
 )
 
 type SellerService interface {
+		AllSellers(ctx context.Context) ([]model.AllSellersItem, error)
     SellerList(ctx context.Context, filter model.SellerFilter) ([]model.SellerListItem, error)
 		SellerById(ctx context.Context, SellerId string) (*model.ResponseSellerById, error)
 }
@@ -30,6 +31,11 @@ func NewSellerHandler(service SellerService) *SellerHandler {
 
 // ------------------------------------------------------------------------------ MAIN HANDLER
 func (h *SellerHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/sellers/options" {
+			h.AllSellers(w, r)
+			return
+		}
+
 		sellerID := r.PathValue("id")
 
 		if sellerID != "" {
@@ -39,6 +45,23 @@ func (h *SellerHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		h.listSellers(w, r)
 
+}
+
+
+// ------------------------------------------------------------------------------------ ALL SELLERS
+func (h *SellerHandler) AllSellers (w http.ResponseWriter, r *http.Request) {
+    sellers, err := h.service.AllSellers(r.Context())
+    if err != nil {
+				log.Printf("SellerList error: %v", err)
+
+    		http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(http.StatusOK)
+
+    json.NewEncoder(w).Encode(sellers)
 }
 
 // ------------------------------------------------------------------------------------------ SINGLE SELLER BY ID
@@ -98,20 +121,32 @@ func parseSellerFilter(r *http.Request) (model.SellerFilter, error) {
 
     q := r.URL.Query()
 
-    if v := q.Get("brand"); v != "" {
-        id, err := strconv.Atoi(v)
+		// brands
+		for _, value := range q["brand"] {
+        id, err := strconv.Atoi(value)
         if err != nil {
-            return filter, fmt.Errorf("invalid brand")
+            return filter, fmt.Errorf("invalid brand: %s", value)
         }
-        filter.BrandID = &id
+
+        if id <= 0 {
+            return filter, fmt.Errorf("invalid brand: %s", value)
+        }
+
+        filter.BrandIDs = append(filter.BrandIDs, id)
     }
 
-    if v := q.Get("category"); v != "" {
-        id, err := strconv.Atoi(v)
+		// categories
+		for _, value := range q["category"] {
+        id, err := strconv.Atoi(value)
         if err != nil {
-            return filter, fmt.Errorf("invalid category")
+            return filter, fmt.Errorf("invalid category: %s", value)
         }
-        filter.CategoryID = &id
+
+        if id <= 0 {
+            return filter, fmt.Errorf("invalid brand: %s", value)
+        }
+
+        filter.CategoryIDs = append(filter.CategoryIDs, id)
     }
 
     if v := q.Get("min_goods"); v != "" {
@@ -120,6 +155,30 @@ func parseSellerFilter(r *http.Request) (model.SellerFilter, error) {
             return filter, fmt.Errorf("invalid minGoods")
         }
         filter.MinGoods = &n
+    }
+
+		if v := q.Get("max_goods"); v != "" {
+		    n, err := strconv.Atoi(v)
+		    if err != nil {
+		        return filter, fmt.Errorf("invalid max_goods")
+		    }
+        filter.MaxGoods = &n
+		}
+
+		// min > max good amount
+		if filter.MinGoods != nil && 
+			filter.MaxGoods != nil && 
+			*filter.MinGoods > *filter.MaxGoods {
+			return filter, fmt.Errorf("min_goods cannot be greater than max_goods")
+		}
+
+
+    if v := q.Get("max_score"); v != "" {
+        score, err := strconv.ParseFloat(v, 64)
+        if err != nil {
+            return filter, fmt.Errorf("invalid maxScore")
+        }
+        filter.MaxScore = &score
     }
 
     if v := q.Get("min_score"); v != "" {

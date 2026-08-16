@@ -7,6 +7,7 @@ import (
 )
 
 type SellerRepository interface {
+	AllSellers(ctx context.Context) ([]model.AllSellersItem, error)
 	SellerList(ctx context.Context, filter model.SellerFilter) ([]model.SellerListItem, error)
 	SellerById(ctx context.Context, SellerID string) (*model.SellerListItem, error)
 	SellerBrands(ctx context.Context, sellerIDs []string) (map[string][]model.BrandSeller, error)
@@ -20,6 +21,18 @@ type SellerService struct {
 func NewSellerService(repo SellerRepository) *SellerService {
   return &SellerService{repo: repo}
 }
+
+func (s *SellerService) AllSellers(
+    ctx context.Context,
+) ([]model.AllSellersItem, error) {
+
+    sellers, err := s.repo.AllSellers(ctx)
+    if err != nil {
+        return nil, err
+    }
+		return sellers, nil
+}
+
 
 func (s *SellerService) SellerList(
     ctx context.Context,

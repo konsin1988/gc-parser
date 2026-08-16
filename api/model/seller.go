@@ -1,10 +1,12 @@
 package model
 
 type SellerFilter struct {
-  BrandID      *int
-  CategoryID   *int
-  MinGoods     *int
-  MinScore     *float64
+  BrandIDs			[]int 
+  CategoryIDs   []int
+  MinGoods     	*int
+	MaxGoods 			*int
+  MinScore     	*float64
+	MaxScore			*float64	
 
 	Sort				[]SellerSort
 }
@@ -14,6 +16,11 @@ type SellerSort struct {
 	Order			string
 }
 
+type AllSellersItem struct {
+	ID 						string
+	Name					string
+	Slug					string
+}
 
 type SellerListItem struct {
 	ID											string           `json:"id"` 
@@ -49,3 +56,4 @@ type GoodSeller struct {
 	Title 				string
 	Slug					string
 }
+

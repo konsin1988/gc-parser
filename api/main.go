@@ -34,6 +34,8 @@ func main() {
 	// sellers
 	api.Handle("GET /sellers", sellerHandler)
 	api.Handle("GET /seller/{id}", sellerHandler)
+	api.Handle("GET /sellers/options", sellerHandler)
+
 	//root.Handle("/api/", auth.Middleware(api))
 
   log.Println("Server started on :8000")
