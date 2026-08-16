@@ -12,6 +12,48 @@ import (
 		"konsin1988/gc-api/model"
 )
 
+// #################################################### ALL SELLERS
+func (r *Repository) AllSellers(
+    ctx context.Context,
+) ([]model.AllSellersItem, error) {
+
+    query := `
+        SELECT
+            s.id,
+            s.name,
+            s.slug
+        FROM parsing_data.seller s
+				ORDER BY replace(split_part(s.name, ' ', 2), '"', '');
+    `
+
+    rows, err := r.db.QueryContext(ctx, query)
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+
+    sellers := make([]model.AllSellersItem, 0)
+
+    for rows.Next() {
+        var seller model.AllSellersItem
+
+        if err := rows.Scan(
+            &seller.ID,
+            &seller.Name,
+            &seller.Slug,
+        ); err != nil {
+            return nil, err
+    		}
+
+        sellers = append(sellers, seller)
+		}
+		if err := rows.Err(); err != nil {
+        return nil, err
+    }
+
+		return sellers, err
+}
+
 
 // ##################################################### SELLER LIST
 func (r *Repository) SellerList(
@@ -42,17 +84,23 @@ func (r *Repository) SellerList(
         n = 1
     )
 
-    if filter.BrandID != nil {
-    		query += `
-    		    JOIN parsing_data.brand_seller bs
-    		        ON bs.seller_id = s.id
-    		`
-        where = append(where, fmt.Sprintf("bs.brand_id = $%d", n))
-        args = append(args, *filter.BrandID)
-        n++
-    }
 
-		if filter.CategoryID != nil {
+		if len(filter.BrandIDs) > 0 {
+		    query += `
+		        JOIN parsing_data.brand_seller bs
+		            ON bs.seller_id = s.id
+		    `
+		
+		    where = append(
+		        where,
+		        fmt.Sprintf("bs.brand_id = ANY($%d)", n),
+		    )
+		
+		    args = append(args, pq.Array(filter.BrandIDs))
+		    n++
+		}
+
+		if len(filter.CategoryIDs) > 0 {
 		    query += `
 		        JOIN parsing_data.good g
 		            ON g.sku = gi.sku
@@ -60,8 +108,11 @@ func (r *Repository) SellerList(
 		            ON cr.child_id = g.cat_id
 		    `
 		
-		    where = append(where, fmt.Sprintf("cr.parent_id = $%d", n))
-		    args = append(args, *filter.CategoryID)
+		    where = append(
+					where, 
+					fmt.Sprintf("cr.parent_id = ANY($%d)", n),
+				)
+		    args = append(args, pq.Array(filter.CategoryIDs))
 		    n++
 		}
 
@@ -87,6 +138,24 @@ func (r *Repository) SellerList(
         n++
     }
 
+		if filter.MaxGoods != nil {
+		    having = append(
+		        having,
+		        fmt.Sprintf("COUNT(DISTINCT gi.sku) <= $%d", n),
+		    )
+		    args = append(args, *filter.MaxGoods)
+		    n++
+		}
+
+    if filter.MaxScore != nil {
+        having = append(
+            having,
+            fmt.Sprintf("COALESCE(AVG(rv.score),5) <= $%d", n),
+        )
+        args = append(args, *filter.MaxScore)
+        n++
+    }
+
     if filter.MinScore != nil {
         having = append(
             having,
@@ -95,6 +164,7 @@ func (r *Repository) SellerList(
         args = append(args, *filter.MinScore)
         n++
     }
+
 
     if len(having) > 0 {
         query += "\nHAVING " + strings.Join(having, " AND ")

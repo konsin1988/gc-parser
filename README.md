@@ -33,24 +33,32 @@
 
 ### Endpoints
 
-#### Sellers List with filters
+#### AllSellers:
+    - ID
+    - Name
+    - Slug
 
-##### SellerList:
-    - ID;
-    - Name;
-    - Slug;
-    - Ogrnip;
-    - Inn;
-    - GoodsAmount;
-    - Brands;
-    - Goods;
+```/sellers/options```
+
+#### SellerList:
+    - ID
+    - Name
+    - Slug
+    - Ogrnip
+    - Inn
+    - GoodsAmount
+    - Brands
+    - Goods
     - AverageReviewScore
 
-##### filterBy: GoodsAmount, Brands, AverageReviewScore, Category 
-##### orderBy: Name, GoodAmount, AverageReviewScore
+> filterBy: GoodsAmount, Brands, AverageReviewScore, Category 
+> orderBy: Name, GoodAmount, AverageReviewScore
 
 ```/sellers?brand=1&min_goods=5&min_score=4.2&category=285&sort=score:desc,goods:desc,name:asc```
+
 ```/sellers?brand=1&sort=score:desc,goods:desc,name:asc```
+
+```/sellers?brand=1&min_goods=3&max_goods=90&max_score=4.8&sort=score:desc,goods:desc,name:asc```
 
 
 #### Seller By Id
