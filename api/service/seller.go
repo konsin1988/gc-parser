@@ -8,7 +8,7 @@ import (
 
 type SellerRepository interface {
 	AllSellers(ctx context.Context) ([]model.AllSellersItem, error)
-	SellerList(ctx context.Context, filter model.SellerFilter) ([]model.SellerListItem, error)
+	SellerList(ctx context.Context, filter model.Filter) ([]model.SellerListItem, error)
 	SellerById(ctx context.Context, SellerID string) (*model.SellerListItem, error)
 	SellerBrands(ctx context.Context, sellerIDs []string) (map[string][]model.BrandSeller, error)
 	SellerGoods(ctx context.Context, sellerIDs []string) (map[string][]model.GoodSeller, error)
@@ -36,7 +36,7 @@ func (s *SellerService) AllSellers(
 
 func (s *SellerService) SellerList(
     ctx context.Context,
-    filter model.SellerFilter,
+    filter model.Filter,
 ) ([]model.SellerListItem, error) {
 
     sellers, err := s.repo.SellerList(ctx, filter)
@@ -69,16 +69,10 @@ func (s *SellerService) SellerById(
     }
 
 		response := &model.ResponseSellerById{
-		        ID:                 seller.ID,
-		        Name:               seller.Name,
-		        Slug:               seller.Slug,
-		        Ogrn:               seller.Ogrn,
-		        Inn:                seller.Inn,
-		        GoodsAmount:        seller.GoodsAmount,
-		        AverageReviewScore: seller.AverageReviewScore,
+						Info:								seller,
 		        Brands:             brandsBySeller[seller.ID],
 		        Goods:              goodsBySeller[seller.ID],
 		    }
-		
+
 		return response, nil
 }

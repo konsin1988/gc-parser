@@ -58,7 +58,7 @@ func (r *Repository) AllSellers(
 // ##################################################### SELLER LIST
 func (r *Repository) SellerList(
     ctx context.Context,
-    filter model.SellerFilter,
+    filter model.Filter,
 ) ([]model.SellerListItem, error) {
 
     query := `
