@@ -14,7 +14,7 @@ import (
 // ##################################################### SELLER LIST
 func (r *Repository) GoodList(
     ctx context.Context,
-    filter model.SellerFilter,
+    filter model.Filter,
 ) ([]model.SellerListItem, error) {
 	return nil, nil
 }

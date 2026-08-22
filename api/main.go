@@ -23,6 +23,9 @@ func main() {
 	sellerService := service.NewSellerService(repo)
 	sellerHandler := http_t.NewSellerHandler(sellerService)
 
+	brandService := service.NewBrandService(repo)
+	brandHandler := http_t.NewBrandHandler(brandService)
+
 	api := http.NewServeMux()
 	
 	api.Handle("GET /health", healthHandler)
@@ -35,6 +38,9 @@ func main() {
 	api.Handle("GET /sellers", sellerHandler)
 	api.Handle("GET /seller/{id}", sellerHandler)
 	api.Handle("GET /sellers/options", sellerHandler)
+
+	// brands
+	api.Handle("GET /brands/options", brandHandler)
 
 	//root.Handle("/api/", auth.Middleware(api))
 
