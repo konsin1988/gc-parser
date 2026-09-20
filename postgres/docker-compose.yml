@@ -1,0 +1,115 @@
+services:
+# ------------------------------------------------------------------------- POSTGRES
+  postgres:
+    image: postgres:14 
+    container_name: ${PROJECT_NAME}-postgres
+    ports:
+      - 5432:5432
+    env_file: ../.env
+    volumes:
+      - ./postgres/:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_HOST=${DB_HOST}
+      - POSTGRES_PORT=${DB_PORT}
+      - POSTGRES_DB=${DB_NAME}
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    mem_limit: 1G
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10M"
+        max-file: "3" 
+    networks: 
+      - gc-network
+
+# --------------------------------------------------------------------- BACKUP
+  backup:
+    image: postgres:15-alpine
+    container_name: ${PROJECT_NAME}-backup
+    env_file: ../.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backups:/backups
+    entrypoint: >
+      sh -c "while true; do
+        PGPASSWORD=$$POSTGRES_PASSWORD pg_dump -h db -U $$POSTGRES_USER $$POSTGRES_DB |
+        gzip > /backups/backup_$$(date +%Y%m%d_%H%M%S).sql.gz;
+        find /backups -mtime +7 -print;
+        find /backups -mtime +7 -delete;
+        sleep 86400;
+      done"
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_HOST=${DB_HOST}
+      - POSTGRES_PORT=${DB_PORT}
+      - POSTGRES_DB=${DB_NAME}
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 128M
+    networks: 
+      - gc-network 
+
+# ----------------------------------------------------------------------- REDIS
+  # redis:
+  #   image: redis:latest
+  #   container_name: crm-redis
+  #   volumes:
+  #     - ./redis/data/:/data/
+  #     - ./redis/redis.conf:/etc/redis/redis.conf
+  #   ports:
+  #     - 6379:6379
+  #   environment:
+  #     - REDIS_PASSWORD=${REDIS_PASSWORD}
+  #     - REDIS_USER=${REDIS_USER}
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         cpus: '0.50'
+  #         memory: 512M
+  #       reservations:
+  #         cpus: '0.25'
+  #         memory: 256M
+  #   command: >
+  #     sh -c '
+  #       echo "bind 0.0.0.0" > /etc/redis/redis.conf &&
+  #       echo "requirepass $REDIS_PASSWORD" >> /etc/redis/redis.conf &&
+  #       echo "appendonly yes" >> /etc/redis/redis.conf &&
+  #       echo "appendfsync everysec" >> /etc/redis/redis.conf &&
+  #       echo "user default on nopass ~* +@all" > /etc/redis/users.acl &&
+  #       echo "user $REDIS_USER on >$REDIS_PASSWORD ~* +@all" >> /etc/redis/users.acl &&
+  #       redis-server /etc/redis/redis.conf --aclfile /etc/redis/users.acl
+  #     '
+  #   healthcheck:
+  #     test: ["CMD", "redis-cli", "-a", "$REDIS_PASSWORD", "ping"]
+  #     interval: 3s
+  #     timeout: 10s
+  #     retries: 5
+  #   restart: unless-stopped
+  #   networks:
+  #     - revenue-estimate-network
+
+
+networks:
+  gc-network:
+    name: gc-network
+    external: False

@@ -40,6 +40,8 @@ func main() {
 	api.Handle("GET /sellers/options", sellerHandler)
 
 	// brands
+	api.Handle("GET /brands", brandHandler)
+	api.Handle("GET /brand/{id}", brandHandler)
 	api.Handle("GET /brands/options", brandHandler)
 
 	//root.Handle("/api/", auth.Middleware(api))

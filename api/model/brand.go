@@ -14,22 +14,23 @@ type BrandListItem struct {
 	Slug										string					 `json:"slug"`
 	GoodsAmount 						int     				 `json:"goodsAmount"`
 	AverageReviewScore			float64 				 `json:"averageReviewScore"`
+	SellerAmount						int							 `json:"sellerAmount"`
 }
 
 
 type ResponseBrandById struct {
 	Info										*BrandListItem		`json:"info"`
-	Brands									[]SellersBrand		`json:"sellers"`
-	Goods										[]GoodsBrand 			`json:"goods"`
+	Brands									[]SellerBrand		`json:"sellers"`
+	Goods										[]GoodBrand 			`json:"goods"`
 }
 
-type SellersBrand struct {
+type SellerBrand struct {
 	ID						int	
 	Slug					string
 	Title					string
 }
 
-type GoodsBrand struct {
+type GoodBrand struct {
 	Sku						string
 	Title 				string
 	Slug					string

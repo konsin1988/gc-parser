@@ -29,6 +29,11 @@ func parseFilter(r *http.Request) (model.Filter, error) {
         filter.BrandIDs = append(filter.BrandIDs, id)
     }
 
+		// sellers
+		for _, value := range q["seller"] {
+        filter.SellerIDs = append(filter.SellerIDs, value)
+    }
+
 		// categories
 		for _, value := range q["category"] {
         id, err := strconv.Atoi(value)

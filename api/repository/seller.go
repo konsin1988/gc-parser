@@ -337,7 +337,6 @@ func (r *Repository) SellerGoods(
 
 
 // ###################################################### SELLER BY ID
-
 func (r *Repository) SellerById(
     ctx context.Context,
 		sellerID string,
