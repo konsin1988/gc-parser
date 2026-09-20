@@ -4,6 +4,7 @@ package model
 type Filter struct {
   BrandIDs			[]int 
   CategoryIDs   []int
+	SellerIDs			[]string
   MinGoods     	*int
 	MaxGoods 			*int
   MinScore     	*float64

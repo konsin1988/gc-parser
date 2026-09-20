@@ -1,7 +1,7 @@
 # GC Parsing project 
 
 > The goal is to get data of goods and sellers from popular marketplaces, 
-> to create an REST API to send this data to client and to develop UI 
+> to create an REST API to send this data to client and to develop UI (in progress) 
 > to check data about sellers and goods
 
 ### Steck
@@ -47,8 +47,6 @@
     - Ogrnip
     - Inn
     - GoodsAmount
-    - Brands
-    - Goods
     - AverageReviewScore
 
 > filterBy: GoodsAmount, Brands, AverageReviewScore, Category 
@@ -73,3 +71,39 @@
     - AverageReviewScore
 
 ```/seller/1229288```
+
+
+#### All brands:
+    - ID
+    - Title 
+    - Slug
+
+```/brands/options```
+
+#### Brand by Id:
+	- Info
+	- Brands
+	- Goods
+
+#### BrandList:
+    - ID
+    - Name
+    - Slug
+    - GoodsAmount
+    - AverageReviewScore
+    - sellerAmount
+
+> filterBy: GoodsAmount, Sellers, AverageReviewScore, Category 
+> orderBy: Name, GoodAmount, AverageReviewScore
+
+```/brands?seller=3548727&sort=score:desc,goods:desc,name:asc```
+
+```http://localhost:8000/brands?min_goods=5&sort=score:desc,goods:asc,name:asc&category=218```
+
+
+#### All Goods
+    - ID
+    - Title 
+    - Slug
+
+```/brands/options```

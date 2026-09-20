@@ -12,8 +12,8 @@ import (
 
 type BrandService interface {
 		AllBrands(ctx context.Context) ([]model.AllBrandsItem, error)
-    //SellerList(ctx context.Context, filter model.Filter) ([]model.SellerListItem, error)
-		//SellerById(ctx context.Context, SellerId string) (*model.ResponseSellerById, error)
+		BrandList(ctx context.Context, filter model.Filter) ([]model.BrandListItem, error)
+		BrandById(ctx context.Context, BrandId string) (*model.ResponseBrandById, error)
 }
 
 type BrandHandler struct {
@@ -33,14 +33,14 @@ func (h *BrandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		//brandID := r.PathValue("id")
+		brandID := r.PathValue("id")
 
-		//if brandID != "" {
-		//		h.getSeller(w, r, brandID)
-		//		return
-		//}
+		if brandID != "" {
+				h.getBrand(w, r, brandID)
+				return
+		}
 
-		//h.listBrands(w, r)
+		h.listBrands(w, r)
 
 }
 
@@ -49,7 +49,45 @@ func (h *BrandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (h *BrandHandler) AllBrands (w http.ResponseWriter, r *http.Request) {
     brands, err := h.service.AllBrands(r.Context())
     if err != nil {
-				log.Printf("SellerList error: %v", err)
+				log.Printf("BrandList error: %v", err)
+
+    		http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(http.StatusOK)
+
+    json.NewEncoder(w).Encode(brands)
+}
+
+
+// ------------------------------------------------------------------------------------------ SINGLE BRAND BY ID
+func (h *BrandHandler) getBrand(w http.ResponseWriter, r *http.Request, brandID string) {
+    brand, err := h.service.BrandById(r.Context(), brandID)
+    if err != nil {
+				log.Printf("BrandList error: %v", err)
+
+    		http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(http.StatusOK)
+
+    json.NewEncoder(w).Encode(brand)
+}
+
+// ------------------------------------------------------------------------------------------- LIST BRANDS
+func (h *BrandHandler) listBrands(w http.ResponseWriter, r *http.Request) {
+    filter, err := parseFilter(r)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusBadRequest)
+        return
+    }
+		brands, err := h.service.BrandList(r.Context(), filter)
+    if err != nil {
+				log.Printf("BrandList error: %v", err)
 
     		http.Error(w, err.Error(), http.StatusInternalServerError)
         return
